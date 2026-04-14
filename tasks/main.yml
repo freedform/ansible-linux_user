@@ -1,0 +1,15 @@
+- name: Validate users variable
+  ansible.builtin.assert:
+    that:
+      - users is defined
+      - users is mapping
+
+- name: Deploy users
+  ansible.builtin.include_tasks: deploy_user.yml
+  loop: "{{ users | dict2items }}"
+  loop_control:
+    loop_var: user
+    label: "Deploying {{ user_name }}"
+  vars:
+    user_name: "{{ user.key }}"
+    user_data: "{{ user.value }}"

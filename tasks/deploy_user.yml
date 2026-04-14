@@ -1,0 +1,52 @@
+- name: Deploying user --> "{{ user_name }}"
+  ansible.builtin.user:
+    name: "{{ user_name }}"
+    state: "{{ user_data.state | default(omit) }}"
+    shell: "{{ user_data.shell | default(omit) }}"
+    create_home: "{{ user_data.create_home | default(omit) }}"
+    system: "{{ user_data.system | default(omit) }}"
+
+- name: Deploying authorized keys for "{{ user_name }}"
+  when:
+    - user_data.authorized_keys is defined
+    - user_data.authorized_keys is not string
+    - user_data.authorized_keys is iterable
+  ansible.posix.authorized_key:
+    user: "{{ user_name }}"
+    key: "{{ authorized_key.key }}"
+    state: "{{ authorized_key.state | default(omit) }}"
+    key_options: "{{ authorized_key.key_options | default(omit) }}"
+  loop: "{{ user_data.authorized_keys }}"
+  loop_control:
+    label: Deploying authorized key for "{{ user_name }}"
+    loop_var: authorized_key
+
+- name: Deploying sudoers instructions for "{{ user_name }}"
+  when:
+    - user_data.sudoers is defined
+    - user_data.sudoers is string
+  ansible.builtin.copy:
+    dest: "/etc/sudoers.d/{{ user_name }}"
+    content: "{{ user_data.sudoers }}"
+    owner: root
+    group: root
+    mode: '0440'
+    validate: 'visudo -cf %s'
+
+- name: Uploading private keys for "{{ user_name }}"
+  when:
+    - user_data.private_keys is defined
+    - user_data.private_keys is mapping
+  ansible.builtin.copy:
+    src: "{{ private_key_src }}"
+    dest: "/home/{{ user_name }}/.ssh/{{ private_key_name }}"
+    owner: "{{ user_name }}"
+    group: "{{ user_name }}"
+    mode: '0600'
+  loop: "{{ user_data.private_keys | dict2items }}"
+  loop_control:
+    loop_var: private_key
+  vars:
+    private_key_name: "{{ private_key.key }}"
+    private_key_src: "{{ private_key.value }}"
+  no_log: true
