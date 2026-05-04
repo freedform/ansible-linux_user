@@ -1,12 +1,12 @@
-- name: Validate users variable
+- name: Validate linux_user_list variable
   ansible.builtin.assert:
     that:
-      - users is defined
-      - users is mapping
+      - linux_user_list is defined
+      - linux_user_list is mapping
 
-- name: Deploy users
+- name: Deploy linux_user_list
   ansible.builtin.include_tasks: deploy_user.yml
-  loop: "{{ users | dict2items }}"
+  loop: "{{ linux_user_list | dict2items }}"
   loop_control:
     loop_var: user
     label: "Deploying {{ user_name }}"
