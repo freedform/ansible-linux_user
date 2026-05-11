@@ -1,0 +1,16 @@
+# @var linux_user_list:description: >
+# List linux users to be deployed to a target host.
+# @var linux_user_list:required: `true`
+# @var linux_user_list:type: Dict
+# @var linux_user_list:example: $>
+# {
+#   "ansible":{
+#     "state": "present",
+#     "shell": "/bin/bash",
+#     "authorized_keys":[
+#       {"state": "present", "key": "public key value"}
+#     ],
+#     "sudoers": "config for sudoers file"
+#   }
+# }
+# @end
