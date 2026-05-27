@@ -5,6 +5,7 @@
     shell: "{{ user_data.shell | default(omit) }}"
     create_home: "{{ user_data.create_home | default(omit) }}"
     system: "{{ user_data.system | default(omit) }}"
+  register: linux_user_result
 
 - name: Deploying authorized keys for "{{ user_name }}"
   when:
@@ -33,13 +34,24 @@
     mode: '0440'
     validate: 'visudo -cf %s'
 
+- name: Ensure .ssh directory exists for "{{ user_name }}"
+  when:
+    - user_data.private_keys is defined
+    - user_data.private_keys is mapping
+  ansible.builtin.file:
+    path: "{{ linux_user_result.home }}/.ssh"
+    state: directory
+    owner: "{{ user_name }}"
+    group: "{{ user_name }}"
+    mode: '0700'
+
 - name: Uploading private keys for "{{ user_name }}"
   when:
     - user_data.private_keys is defined
     - user_data.private_keys is mapping
   ansible.builtin.copy:
     src: "{{ private_key_src }}"
-    dest: "/home/{{ user_name }}/.ssh/{{ private_key_name }}"
+    dest: "{{ linux_user_result.home }}/.ssh/{{ private_key_name }}"
     owner: "{{ user_name }}"
     group: "{{ user_name }}"
     mode: '0600'

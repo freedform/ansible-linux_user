@@ -1,3 +1,12 @@
+# @var linux_user_actions:description: >
+# List of actions the role does, accepts one or more actions.
+# Use comma without spaces as a delimiter for multiple actions.
+# @var linux_user_actions:required: `true`
+# @var linux_user_actions:type: String
+# @var linux_user_actions:example: >
+#   linux_user_actions: deploy_users
+# @end
+
 # @var linux_user_list:description: >
 # List linux users to be deployed to a target host.
 # @var linux_user_list:required: `true`

@@ -6,6 +6,7 @@ Role linux_user fully automate control of linux users
 
 - [Requirements](#requirements)
 - [Default Variables](#default-variables)
+  - [linux_user_actions](#linux_user_actions)
   - [linux_user_list](#linux_user_list)
 - [Dependencies](#dependencies)
 - [License](#license)
@@ -18,6 +19,20 @@ Role linux_user fully automate control of linux users
 - Minimum Ansible version: `2.20`
 
 ## Default Variables
+
+### linux_user_actions
+
+List of actions the role does, accepts one or more actions.
+Use comma without spaces as a delimiter for multiple actions.
+
+**_Required:_** `true`<br />
+**_Type:_** String<br />
+
+#### Example usage
+
+```YAML
+  linux_user_actions: deploy_users
+```
 
 ### linux_user_list
 
