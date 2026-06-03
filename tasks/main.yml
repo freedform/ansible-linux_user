@@ -1,13 +1,14 @@
 ---
 - name: Create linux_user_action_list
   ansible.builtin.set_fact:
-    linux_user_action_list: "{{ linux_user_actions.split(',') }}"
+    linux_user_action_list: "{{ (linux_user_actions | default('')).split(',') | reject('equalto', '') | list }}"
 
 - name: Validate linux_user_action_list
   ansible.builtin.assert:
     that:
       - linux_user_action_list | length > 0
       - linux_user_action_list | difference(linux_user_supported_actions) | length == 0
+    fail_msg: "linux_user_actions must be set to one or more of: {{ linux_user_supported_actions | join(', ') }}"
 
 - name: Run linux_user action
   ansible.builtin.include_tasks: "{{ task_name }}.yml"

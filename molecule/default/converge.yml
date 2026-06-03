@@ -1,0 +1,12 @@
+---
+- name: Converge
+  hosts: all
+  gather_facts: true
+  roles:
+    - role: "{{ lookup('env', 'MOLECULE_PROJECT_DIRECTORY') }}"
+      vars:
+        linux_user_actions: deploy_users
+        linux_user_list:
+          testuser:
+            state: present
+            shell: /bin/bash
