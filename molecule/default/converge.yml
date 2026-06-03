@@ -2,11 +2,40 @@
 - name: Converge
   hosts: all
   gather_facts: true
+  vars:
+    molecule_test_key: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDT7SV6bNOGDjt35hiJIQRnmfGeHQDGqjVtim8TvoYyi molecule-test"
+    molecule_test_key_2: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDTXCXyFN5pIbAdC79s+MdQalSswxkyDi/ioTv4P0w7y molecule-test-2"
+    molecule_test_key_remove: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHGK62euy/Uhv4/ateZChmST/ujUCaaZwcmK093kkxlY molecule-test-remove"
+    linux_user_actions: deploy_users
+    linux_user_list:
+      testuser:
+        state: present
+        shell: /bin/bash
+      sudoer_user:
+        state: present
+        shell: /bin/bash
+        sudoers: "sudoer_user ALL=(ALL) NOPASSWD: ALL\n"
+      key_user:
+        state: present
+        shell: /bin/bash
+        authorized_keys:
+          - state: present
+            key: "{{ molecule_test_key }}"
+      multi_key_user:
+        state: present
+        shell: /bin/bash
+        authorized_keys:
+          - state: present
+            key: "{{ molecule_test_key }}"
+          - state: present
+            key: "{{ molecule_test_key_2 }}"
+      key_remove_user:
+        state: present
+        shell: /bin/bash
+        authorized_keys:
+          - state: absent
+            key: "{{ molecule_test_key_remove }}"
+      absentuser:
+        state: absent
   roles:
     - role: "{{ lookup('env', 'MOLECULE_PROJECT_DIRECTORY') }}"
-      vars:
-        linux_user_actions: deploy_users
-        linux_user_list:
-          testuser:
-            state: present
-            shell: /bin/bash

@@ -1,0 +1,22 @@
+---
+- name: Prepare
+  hosts: all
+  gather_facts: false
+  vars:
+    molecule_test_key_remove: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHGK62euy/Uhv4/ateZChmST/ujUCaaZwcmK093kkxlY molecule-test-remove"
+  tasks:
+    - name: Pre-create absentuser so the role has a real user to remove
+      ansible.builtin.user:
+        name: absentuser
+        state: present
+
+    - name: Pre-create key_remove_user
+      ansible.builtin.user:
+        name: key_remove_user
+        state: present
+
+    - name: Pre-seed test_key_remove for key_remove_user
+      ansible.posix.authorized_key:
+        user: key_remove_user
+        key: "{{ molecule_test_key_remove }}"
+        state: present

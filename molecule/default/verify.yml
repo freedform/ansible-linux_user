@@ -1,0 +1,117 @@
+---
+- name: Verify
+  hosts: all
+  gather_facts: false
+  vars:
+    molecule_test_key: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDT7SV6bNOGDjt35hiJIQRnmfGeHQDGqjVtim8TvoYyi molecule-test"
+    molecule_test_key_2: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDTXCXyFN5pIbAdC79s+MdQalSswxkyDi/ioTv4P0w7y molecule-test-2"
+    molecule_test_key_remove: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHGK62euy/Uhv4/ateZChmST/ujUCaaZwcmK093kkxlY molecule-test-remove"
+  tasks:
+    - name: Gather passwd database
+      ansible.builtin.getent:
+        database: passwd
+
+    - name: Assert testuser exists
+      ansible.builtin.assert:
+        that: "'testuser' in ansible_facts.getent_passwd"
+        fail_msg: "testuser should exist"
+
+    - name: Assert testuser has shell /bin/bash
+      ansible.builtin.assert:
+        that: "ansible_facts.getent_passwd['testuser'][5] == '/bin/bash'"
+        fail_msg: "testuser shell should be /bin/bash"
+
+    - name: Stat testuser home directory
+      ansible.builtin.stat:
+        path: /home/testuser
+      register: testuser_home
+
+    - name: Assert testuser home directory exists
+      ansible.builtin.assert:
+        that: testuser_home.stat.isdir
+        fail_msg: "/home/testuser should be a directory"
+
+    - name: Assert sudoer_user exists
+      ansible.builtin.assert:
+        that: "'sudoer_user' in ansible_facts.getent_passwd"
+        fail_msg: "sudoer_user should exist"
+
+    - name: Stat sudoers file for sudoer_user
+      ansible.builtin.stat:
+        path: /etc/sudoers.d/sudoer_user
+      register: sudoers_file
+
+    - name: Assert sudoers file exists
+      ansible.builtin.assert:
+        that: sudoers_file.stat.exists
+        fail_msg: "/etc/sudoers.d/sudoer_user should exist"
+
+    - name: Assert sudoers file has mode 0440
+      ansible.builtin.assert:
+        that: "sudoers_file.stat.mode == '0440'"
+        fail_msg: "/etc/sudoers.d/sudoer_user should have mode 0440"
+
+    - name: Fetch sudoers file content
+      ansible.builtin.slurp:
+        src: /etc/sudoers.d/sudoer_user
+      register: sudoers_content
+
+    - name: Assert sudoers file has correct content
+      ansible.builtin.assert:
+        that: "(sudoers_content.content | b64decode) == 'sudoer_user ALL=(ALL) NOPASSWD: ALL\n'"
+        fail_msg: "/etc/sudoers.d/sudoer_user has unexpected content"
+
+    - name: Assert key_user exists
+      ansible.builtin.assert:
+        that: "'key_user' in ansible_facts.getent_passwd"
+        fail_msg: "key_user should exist"
+
+    - name: Fetch authorized_keys for key_user
+      ansible.builtin.slurp:
+        src: /home/key_user/.ssh/authorized_keys
+      register: key_user_authorized_keys
+
+    - name: Assert key_user authorized_keys contains the test key
+      ansible.builtin.assert:
+        that: "molecule_test_key in (key_user_authorized_keys.content | b64decode)"
+        fail_msg: "/home/key_user/.ssh/authorized_keys should contain molecule_test_key"
+
+    - name: Assert multi_key_user exists
+      ansible.builtin.assert:
+        that: "'multi_key_user' in ansible_facts.getent_passwd"
+        fail_msg: "multi_key_user should exist"
+
+    - name: Fetch authorized_keys for multi_key_user
+      ansible.builtin.slurp:
+        src: /home/multi_key_user/.ssh/authorized_keys
+      register: multi_key_user_authorized_keys
+
+    - name: Assert multi_key_user has molecule_test_key
+      ansible.builtin.assert:
+        that: "molecule_test_key in (multi_key_user_authorized_keys.content | b64decode)"
+        fail_msg: "/home/multi_key_user/.ssh/authorized_keys should contain molecule_test_key"
+
+    - name: Assert multi_key_user has molecule_test_key_2
+      ansible.builtin.assert:
+        that: "molecule_test_key_2 in (multi_key_user_authorized_keys.content | b64decode)"
+        fail_msg: "/home/multi_key_user/.ssh/authorized_keys should contain molecule_test_key_2"
+
+    - name: Assert key_remove_user exists
+      ansible.builtin.assert:
+        that: "'key_remove_user' in ansible_facts.getent_passwd"
+        fail_msg: "key_remove_user should exist"
+
+    - name: Fetch authorized_keys for key_remove_user
+      ansible.builtin.slurp:
+        src: /home/key_remove_user/.ssh/authorized_keys
+      register: key_remove_user_authorized_keys
+
+    - name: Assert molecule_test_key_remove was removed from key_remove_user
+      ansible.builtin.assert:
+        that: "molecule_test_key_remove not in (key_remove_user_authorized_keys.content | b64decode)"
+        fail_msg: "/home/key_remove_user/.ssh/authorized_keys should not contain molecule_test_key_remove"
+
+    - name: Assert absentuser does not exist
+      ansible.builtin.assert:
+        that: "'absentuser' not in ansible_facts.getent_passwd"
+        fail_msg: "absentuser should not exist"
