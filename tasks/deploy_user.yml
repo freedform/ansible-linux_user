@@ -5,6 +5,9 @@
     shell: "{{ user_data.shell | default(omit) }}"
     create_home: "{{ user_data.create_home | default(omit) }}"
     system: "{{ user_data.system | default(omit) }}"
+    group: "{{ user_data.group | default(omit) }}"
+    groups: "{{ user_data.groups | default(omit) }}"
+    append: "{{ user_data.append | default(omit) }}"
   register: linux_user_result
 
 - name: Deploying authorized keys for "{{ user_name }}"

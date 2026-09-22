@@ -115,3 +115,42 @@
       ansible.builtin.assert:
         that: "'absentuser' not in ansible_facts.getent_passwd"
         fail_msg: "absentuser should not exist"
+
+    - name: Gather group database
+      ansible.builtin.getent:
+        database: group
+
+    - name: Assert testgroup exists
+      ansible.builtin.assert:
+        that: "'testgroup' in ansible_facts.getent_group"
+        fail_msg: "testgroup should exist"
+
+    - name: Assert testgroup has gid 2001
+      ansible.builtin.assert:
+        that: "ansible_facts.getent_group['testgroup'][1] == '2001'"
+        fail_msg: "testgroup gid should be 2001"
+
+    - name: Assert absentgroup does not exist
+      ansible.builtin.assert:
+        that: "'absentgroup' not in ansible_facts.getent_group"
+        fail_msg: "absentgroup should not exist"
+
+    - name: Assert group_user exists
+      ansible.builtin.assert:
+        that: "'group_user' in ansible_facts.getent_passwd"
+        fail_msg: "group_user should exist"
+
+    - name: Get group_user id info
+      ansible.builtin.command: id group_user
+      register: group_user_id
+      changed_when: false
+
+    - name: Assert group_user has testgroup as primary group
+      ansible.builtin.assert:
+        that: "'gid=2001(testgroup)' in group_user_id.stdout"
+        fail_msg: "group_user primary group should be testgroup"
+
+    - name: Assert group_user has testgroup in secondary groups
+      ansible.builtin.assert:
+        that: "'groups=' in group_user_id.stdout and '2001(testgroup)' in group_user_id.stdout"
+        fail_msg: "group_user should be a member of testgroup"

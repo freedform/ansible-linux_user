@@ -1,0 +1,16 @@
+- name: Validate linux_user_group_list variable
+  ansible.builtin.assert:
+    that:
+      - linux_user_group_list is defined
+      - linux_user_group_list is mapping
+      - linux_user_group_list | length > 0
+
+- name: Deploy linux_user_group_list
+  ansible.builtin.include_tasks: deploy_group.yml
+  loop: "{{ linux_user_group_list | dict2items }}"
+  loop_control:
+    loop_var: group
+    label: "Deploying {{ group.key }}"
+  vars:
+    group_name: "{{ group.key }}"
+    group_data: "{{ group.value }}"

@@ -6,7 +6,7 @@
     molecule_test_key: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDT7SV6bNOGDjt35hiJIQRnmfGeHQDGqjVtim8TvoYyi molecule-test"
     molecule_test_key_2: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDTXCXyFN5pIbAdC79s+MdQalSswxkyDi/ioTv4P0w7y molecule-test-2"
     molecule_test_key_remove: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHGK62euy/Uhv4/ateZChmST/ujUCaaZwcmK093kkxlY molecule-test-remove"
-    linux_user_actions: deploy_users
+    linux_user_actions: deploy_groups,deploy_users
     linux_user_list:
       testuser:
         state: present
@@ -36,6 +36,19 @@
           - state: absent
             key: "{{ molecule_test_key_remove }}"
       absentuser:
+        state: absent
+      group_user:
+        state: present
+        shell: /bin/bash
+        group: testgroup
+        groups:
+          - testgroup
+        append: true
+    linux_user_group_list:
+      testgroup:
+        state: present
+        gid: 2001
+      absentgroup:
         state: absent
   roles:
     - role: "{{ lookup('env', 'MOLECULE_PROJECT_DIRECTORY') }}"

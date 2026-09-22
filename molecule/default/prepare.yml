@@ -10,6 +10,11 @@
         name: absentuser
         state: present
 
+    - name: Pre-create absentgroup so the role has a real group to remove
+      ansible.builtin.group:
+        name: absentgroup
+        state: present
+
     - name: Pre-create key_remove_user
       ansible.builtin.user:
         name: key_remove_user

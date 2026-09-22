@@ -1,0 +1,6 @@
+- name: Deploying group --> "{{ group_name }}"
+  ansible.builtin.group:
+    name: "{{ group_name }}"
+    state: "{{ group_data.state | default(omit) }}"
+    gid: "{{ group_data.gid | default(omit) }}"
+    system: "{{ group_data.system | default(omit) }}"
